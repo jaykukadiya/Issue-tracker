@@ -82,14 +82,23 @@ Follow these instructions to set up and run the project locally.
     ```bash
     pip install -r requirements.txt
     ```
-3.  **Create a `.env` file** in the `backend` root and add the following variables:
+3.  **Set up MongoDB Database**:
+    Before running the backend, you need a running MongoDB instance.
+
+    - **Install MongoDB Community Server**:
+      First, download and install MongoDB Community Server from the [official MongoDB website](https://www.mongodb.com/try/download/community). Follow the installation instructions for your operating system to set up the database server.
+
+    - **Manage with MongoDB Compass**:
+      For a user-friendly experience when viewing or managing your data, we recommend [MongoDB Compass](https://www.mongodb.com/products/compass). It's a powerful GUI that allows you to interact with your database. After installing MongoDB Server, you can download Compass and connect to your local instance (e.g., `mongodb://localhost:27017`) to get started.
+
+4.  **Create a `.env` file** in the `backend` root and add the following variables:
     ```env
     MONGO_DB_URL="mongodb://localhost:27017/issue_tracker"
     JWT_SECRET_KEY="your-super-secret-jwt-key"
     GOOGLE_API_KEY="your-google-gemini-api-key"
     ```
     can copy from the .env.example file
-4.  **Run the backend server**:
+5.  **Run the backend server**:
     ```bash
     uvicorn main:app --reload
     ```
