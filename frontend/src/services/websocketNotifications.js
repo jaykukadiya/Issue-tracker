@@ -16,7 +16,7 @@ class WebSocketNotificationService {
     this.isConnecting = true;
 
     try {
-      const wsUrl = `ws://localhost:8000/ws/notifications?token=${token}`;
+      const wsUrl = `${process.env.REACT_APP_WS_BASE_URL}/ws/notifications?token=${token}`;
       this.websocket = new WebSocket(wsUrl);
 
       this.websocket.onopen = () => {
