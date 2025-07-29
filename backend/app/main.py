@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from app.database import connect_to_mongo, close_mongo_connection
 from app.routers import auth, issues, teams, notifications, websocket_notifications, ai
 import logging
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,9 +30,11 @@ app = FastAPI(
 )
 
 # Configure CORS
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # React dev server
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
