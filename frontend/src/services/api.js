@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://issue-tracker-z8z6.onrender.com';
 
 class ApiService {
   constructor() {
