@@ -299,8 +299,6 @@ async def get_specific_team_members(
         }).to_list(None)
         
         logger.info(f"Found {len(team_members)} team members for team {team_id}")
-        for i, member in enumerate(team_members):
-            logger.info(f"Member {i}: user_id={member['user_id']} (type: {type(member['user_id'])}), username={member.get('username', 'N/A')}")
         
         # Get user details for each member
         users = []

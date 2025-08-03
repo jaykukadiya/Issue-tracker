@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { 
   AlertCircle, 
@@ -13,29 +13,34 @@ import { Link } from 'react-router-dom';
 import MarkdownRenderer from '../common/MarkdownRenderer';
 
 const KanbanBoard = ({ issues, onIssueUpdate, onIssueDelete, highlightedIssueId = null }) => {
-  const columns = {
-    OPEN: {
-      id: 'OPEN',
-      title: 'Open',
-      icon: AlertCircle,
-      color: 'blue',
-      issues: issues.filter(issue => issue.status === 'OPEN'),
-    },
-    IN_PROGRESS: {
-      id: 'IN_PROGRESS',
-      title: 'In Progress',
-      icon: Clock,
-      color: 'yellow',
-      issues: issues.filter(issue => issue.status === 'IN_PROGRESS'),
-    },
-    CLOSED: {
-      id: 'CLOSED',
-      title: 'Closed',
-      icon: CheckCircle2,
-      color: 'green',
-      issues: issues.filter(issue => issue.status === 'CLOSED'),
-    },
-  };
+  const [columns, setColumns] = useState({});
+
+  useEffect(() => {
+    setColumns({
+      OPEN: {
+        id: 'OPEN',
+        title: 'Open',
+        icon: AlertCircle,
+        color: 'blue',
+        issues: issues.filter(issue => issue.status === 'OPEN'),
+      },
+      IN_PROGRESS: {
+        id: 'IN_PROGRESS',
+        title: 'In Progress',
+        icon: Clock,
+        color: 'yellow',
+        issues: issues.filter(issue => issue.status === 'IN_PROGRESS'),
+      },
+      CLOSED: {
+        id: 'CLOSED',
+        title: 'Closed',
+        icon: CheckCircle2,
+        color: 'green',
+        issues: issues.filter(issue => issue.status === 'CLOSED'),
+      },
+    });
+  }, [issues]);
+
 
   const handleDragEnd = (result) => {
     const { destination, source, draggableId } = result;
@@ -49,10 +54,33 @@ const KanbanBoard = ({ issues, onIssueUpdate, onIssueDelete, highlightedIssueId 
       return;
     }
 
-    const issueId = draggableId;
-    const newStatus = destination.droppableId;
+    const startColumn = columns[source.droppableId];
+    const endColumn = columns[destination.droppableId];
+    const draggedIssue = startColumn.issues.find(issue => issue.id === draggableId);
 
-    onIssueUpdate(issueId, { status: newStatus });
+    // Optimistic UI Update
+    const newStartIssues = Array.from(startColumn.issues);
+    newStartIssues.splice(source.index, 1);
+
+    const newEndIssues = Array.from(endColumn.issues);
+    newEndIssues.splice(destination.index, 0, draggedIssue);
+
+    const newColumns = {
+      ...columns,
+      [startColumn.id]: {
+        ...startColumn,
+        issues: newStartIssues,
+      },
+      [endColumn.id]: {
+        ...endColumn,
+        issues: newEndIssues,
+      },
+    };
+
+    setColumns(newColumns);
+
+    // Call API to update backend
+    onIssueUpdate(draggableId, { status: destination.droppableId });
   };
 
   const getPriorityClass = (priority) => {
@@ -199,9 +227,13 @@ const KanbanBoard = ({ issues, onIssueUpdate, onIssueDelete, highlightedIssueId 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {Object.values(columns).map((column) => (
-          <Column key={column.id} column={column} />
-        ))}
+        {Object.values(columns).length > 0 ? (
+          Object.values(columns).map((column) => (
+            <Column key={column.id} column={column} />
+          ))
+        ) : (
+          <p>Loading board...</p> // Or a spinner component
+        )}
       </div>
     </DragDropContext>
   );

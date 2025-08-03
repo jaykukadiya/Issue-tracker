@@ -3,11 +3,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.database import connect_to_mongo, close_mongo_connection
 from app.routers import auth, issues, teams, notifications, websocket_notifications, ai
+from app.middleware import LoggingMiddleware  # Import the new middleware
 import logging
+import sys
 import os
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# --- Structured Logging Configuration ---
+# Remove all handlers associated with the root logger object.
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+
+# Add a new handler to send logs to stdout (console).
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+    stream=sys.stdout,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,6 +44,8 @@ app = FastAPI(
 # Configure CORS
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "https://issue-tracker-seven-fawn.vercel.app,http://localhost:3000,http://127.0.0.1:3000,https://issue-tracker-b0x6vaerz-jay-kukadiyas-projects-6fab814e.vercel.app").split(",")
 
+# Add middlewares
+app.add_middleware(LoggingMiddleware)  # Add our custom logging middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,

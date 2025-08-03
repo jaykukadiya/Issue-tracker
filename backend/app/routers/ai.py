@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 import httpx
+import logging
 from app.config import settings
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 class Description(BaseModel):
@@ -35,8 +37,10 @@ async def enhance_description(description: Description):
             enhanced_text = data.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text')
 
             if not enhanced_text:
+                logger.error("Gemini API returned empty or invalid response structure.")
                 raise HTTPException(status_code=500, detail="Failed to get enhanced description from Gemini API.")
 
+            logger.info("Successfully enhanced description with Gemini API.")
             return EnhancedDescription(enhanced_description=enhanced_text.strip())
 
     except httpx.HTTPStatusError as e:
@@ -44,4 +48,5 @@ async def enhance_description(description: Description):
         error_detail = e.response.json().get("error", {}).get("message", str(e))
         raise HTTPException(status_code=e.response.status_code, detail=error_detail)
     except Exception as e:
+        logger.error(f"An unexpected error occurred while calling Gemini API: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
